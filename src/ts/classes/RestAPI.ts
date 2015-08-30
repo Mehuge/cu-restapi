@@ -74,6 +74,7 @@ export class Rest {
 		}
 
 		function executor(resolve: (data: any) => void, reject: (status: string, errorThrown: string) => void) {
+			// TODO: Implement progressive timeouts 
 			XHR.open(method, url, true);
 			XHR.timeout = params.timeout || this.api.settings.timeout;
 			XHR.addEventListener("readystatechanged", (ev : UIEvent) => {
