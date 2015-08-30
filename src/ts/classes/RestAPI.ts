@@ -68,10 +68,10 @@ export class Rest {
 		// add params
 		const query = params.query;
 		if (query) {
-			let qs = [];
+			let qs : string[] = [];
 			for (key in query) {
 				if (query.hasOwnProperty(key)) {
-					qs.push(key + "=" + encodeURIComponent(query[key]);
+					qs.push(key + "=" + encodeURIComponent(query[key]));
 				}
 			}
 			if (qs.length) {
@@ -92,7 +92,12 @@ export class Rest {
 			});
 			XHR.addEventListener("load", (ev : UIEvent) => {
 				if (XHR.readyState === 4 && XHR.status === 200) {
-					resolve(XHR.responseText);
+					try {
+						const data: any = JSON.parse(XHR.response);
+						resolve(data);
+					} catch(e) {
+						reject("parse-fail", e.message);
+					}
 				}
 			});
 			XHR.addEventListener("abort", (ev: UIEvent) => {
