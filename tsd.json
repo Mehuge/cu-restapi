@@ -1,0 +1,8 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "src/definitions",
+  "bundle": "src/definitions/tsd.d.ts",
+  "installed": {}
+}
