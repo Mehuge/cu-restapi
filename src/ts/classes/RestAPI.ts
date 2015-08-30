@@ -20,19 +20,26 @@ class Settings {
 	timeout: number;
 	constructor(channel:channelId) {
 		this.core = new CoreSettings();			// TODO: This class is a bit weird
-		this.apiKey = cuAPI.loginToken;
 		this.channelId = channel;
 		this.timeout = 2000;					// default timeout
 		switch(channel) {
 			case channelId.HATCHERY:
-				this.url = this.core.hatcheryApiUrl;
+				this.url = 'http://hatchery.camelotunchained.com';
+				// BUG: (returns https://) this.url = this.core.hatcheryApiUrl;
 				this.port = this.core.hatcheryApiPort;
 				break;
 			case channelId.WYRMLING:
-				this.url = this.core.wyrmlingApiUrl;
+				this.url = 'http://wyrmling.camelotunchained.com'; 
+				// BUG: (returns https://) this.url = this.core.wyrmlingApiUrl;
 				this.port = this.core.wyrmlingApiPort;
 				break;
 		}
+	}
+	getApiKey() {
+		if (!this.apiKey) {
+			this.apiKey = cuAPI.loginToken;		// in fake API will prompt for token
+		}
+		return this.apiKey;
 	}
 }
 
@@ -52,7 +59,6 @@ export class Rest {
 	}
 
 	request(method: string, verb: string, params:any) {
-		const XHR : XMLHttpRequest = new XMLHttpRequest();
 		let key: string;
 		let url: string;
 
@@ -60,34 +66,43 @@ export class Rest {
 		url = this.makeUrl(verb);
 
 		// add params
-		if (params.query) {
-			let count: number = 0;
-			for (key in params) {
-				if (params.hasOwnProperty(key)) {
-					count++;
-					params[key] = encodeURIComponent(params[key])
+		const query = params.query;
+		if (query) {
+			let qs = [];
+			for (key in query) {
+				if (query.hasOwnProperty(key)) {
+					qs.push(key + "=" + encodeURIComponent(query[key]);
 				}
 			}
-			if (count) {
-				url += "?" + params.join("&");
+			if (qs.length) {
+				url += "?" + qs.join("&");
 			}
 		}
 
 		function executor(resolve: (data: any) => void, reject: (status: string, errorThrown: string) => void) {
+			const XHR : XMLHttpRequest = new XMLHttpRequest();
+
+			// Set timeout
+			XHR.timeout = params.timeout || this.api.settings.timeout;
+
 			// TODO: Implement progressive timeouts 
 			XHR.open(method, url, true);
-			XHR.timeout = params.timeout || this.api.settings.timeout;
-			XHR.addEventListener("readystatechanged", (ev : UIEvent) => {
+			XHR.addEventListener("progress", (ev: ProgressEvent) => {
+				console.dir(ev);
+			});
+			XHR.addEventListener("load", (ev : UIEvent) => {
 				if (XHR.readyState === 4 && XHR.status === 200) {
 					resolve(XHR.responseText);
 				}
 			});
-			XHR.addEventListener("timeout", (ev : UIEvent) => {
-				reject("timeout", "timed out");
+			XHR.addEventListener("abort", (ev: UIEvent) => {
+				reject("abort", "aborted");
 			});
 			XHR.addEventListener("error", (ev : UIEvent) => {
 				reject("error", "errored");
 			});
+
+			XHR.send();
 		}
 
 		return new Promise(executor);
@@ -98,37 +113,8 @@ export class Rest {
 	}
 }
 
-export class Game {
-	private api: Rest;
-	constructor(api: Rest) {
-		this.api = api;
-	}
-	factions(query:any, timeout: number = 2000) {
-		return this.api.GET("game/factions", { timeout: timeout });
-	}
-	races(query:any, timeout: number = 2000) {
-		return this.api.GET("game/races", { timeout: timeout });
-	}
-	players(query:any, timeout: number = 2000) {
-		return this.api.GET("game/players", { timeout: timeout });
-	}
-	banes(query:any) {
-		return this.api.GET("game/banes");
-	}
-	boons(query:any) {
-		return this.api.GET("game/boons");
-	}
-	attributes(query:any) {
-		return this.api.GET("game/attributes");
-	}
-	controlGame(query:any) {
-		return this.api.GET("game/controlgame", { query: query });
-	}
-}
-
 export default class RestAPI {
 	private api: Rest;
-	Game: Game;
 	constructor() {
 		this.api = new Rest();
 		let server: string [] = cuAPI.webApiHost.split(".");
@@ -140,7 +126,32 @@ export default class RestAPI {
 				this.api.selectServer(channelId.WYRMLING);
 				break;
 		}
-		this.Game = new Game(this.api);
+	}
+
+	factions(timeout: number = 2000) {
+		return this.api.GET("game/factions", { timeout: timeout });
+	}
+	races(timeout: number = 2000) {
+		return this.api.GET("game/races", { timeout: timeout });
+	}
+	players(timeout: number = 2000) {
+		return this.api.GET("game/players", { timeout: timeout });
+	}
+	banes() {
+		return this.api.GET("game/banes");
+	}
+	boons() {
+		return this.api.GET("game/boons");
+	}
+	attributes() {
+		return this.api.GET("game/attributes");
+	}
+
+	//	Optional Query Parameters: {
+	//		includeControlPoints: false 		// true/false
+	//	}
+	controlGame(query:any = undefined, timeout = 3000) {
+		return this.api.GET("game/controlgame", { query: query, timeout: timeout });
 	}
 
 	patchnotes() {
@@ -152,7 +163,7 @@ export default class RestAPI {
 	scheduledEvents() {
 		return this.api.GET("scheduledevents");
 	}
-	kills(query:any = {}, timeout:number = 2000) {
+	kills(query:any = undefined, timeout:number = 2000) {
 		return this.api.GET("kills", { query: query, timeout: timeout });
 	}
 }

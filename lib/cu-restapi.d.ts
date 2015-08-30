@@ -21,19 +21,15 @@ declare module '__cu-restapi/classes/RestAPI' {
         request(method: string, verb: string, params: any): any;
         GET(verb: string, params?: any): any;
     }
-    export class Game {
-        constructor(api: Rest);
-        factions(query: any, timeout?: number): any;
-        races(query: any, timeout?: number): any;
-        players(query: any, timeout?: number): any;
-        banes(query: any): any;
-        boons(query: any): any;
-        attributes(query: any): any;
-        controlGame(query: any): any;
-    }
     export default class RestAPI {
-        Game: Game;
         constructor();
+        factions(timeout?: number): any;
+        races(timeout?: number): any;
+        players(timeout?: number): any;
+        banes(): any;
+        boons(): any;
+        attributes(): any;
+        controlGame(query?: any, timeout?: number): any;
         patchnotes(): any;
         banners(): any;
         scheduledEvents(): any;
