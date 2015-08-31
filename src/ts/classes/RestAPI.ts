@@ -122,7 +122,7 @@ export default class RestAPI {
 	private api: Rest;
 	constructor() {
 		this.api = new Rest();
-		let server: string [] = cuAPI.webApiHost.split(".");
+		let server: string [] = cuAPI.webAPIHost.split(".");
 		switch(server[0]) {
 			case "hatchery":
 				this.api.selectServer(channelId.HATCHERY);
