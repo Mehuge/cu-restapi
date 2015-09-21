@@ -70,3 +70,4 @@ gulp.task('watch', ['clean'], watchBuild);
 gulp.task('build', ['clean'], build);
 gulp.task('publish', ['build', 'clean']);
 gulp.task('default', ['publish']);
+gulp.task('install');
