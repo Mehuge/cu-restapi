@@ -68,4 +68,5 @@ gulp.task('compileTS', compileTS);
 gulp.task('bundleDTS', bundleDTS);
 gulp.task('watch', ['clean'], watchBuild);
 gulp.task('build', ['clean'], build);
-gulp.task('default', ['build', 'clean'])
+gulp.task('publish', ['build', 'clean']);
+gulp.task('default', ['publish']);
